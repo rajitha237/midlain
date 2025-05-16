@@ -114,116 +114,153 @@ const EventJobCardForm: React.FC = () => {
 
   const generatePDF = () => {
     const pdf = new jsPDF();
-    const margin = 20;
-    let yPos = margin;
+    
+    // Add logo as watermark
+    const logoWidth = 40;
+    const logoHeight = 40;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    
+    // Add watermark
+    pdf.saveGraphicsState();
+    pdf.setGState(new pdf.GState({ opacity: 0.1 }));
+    pdf.addImage('/Square.png', 'PNG', 
+      pageWidth/2 - logoWidth/2, 
+      pageHeight/2 - logoHeight/2, 
+      logoWidth, 
+      logoHeight
+    );
+    pdf.restoreGraphicsState();
 
-    // Set font styles
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(20);
-    pdf.text('Event Job Card', margin, yPos);
-    yPos += 10;
+    // Header with logo and title
+    pdf.setFillColor(0, 0, 0);
+    pdf.rect(0, 0, pageWidth, 40, 'F');
+    
+    // Add logo to header
+    pdf.addImage('/Square.png', 'PNG', pageWidth - 50, 5, 30, 30);
+    
+    // Add red accent
+    pdf.setFillColor(254, 0, 0);
+    pdf.rect(0, 40, pageWidth, 10, 'F');
 
-    pdf.setFont('helvetica', 'normal');
+    // Title
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(24);
+    pdf.text('EVENT JOB CARD', 20, 25);
+    
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
     pdf.setFontSize(12);
-    pdf.text('Midlane Entertainment', margin, yPos);
+
+    let yPos = 70;
+
+    // Client Information
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Client Information:', 20, yPos);
+    yPos += 10;
+    
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.text(`Name: ${formData.clientName}`, 20, yPos);
+    pdf.text(`Date: ${formData.eventDate}`, pageWidth - 80, yPos);
+    yPos += 8;
+    
+    pdf.text(`NIC: ${formData.clientNIC}`, 20, yPos);
+    yPos += 8;
+    pdf.text(`Contact: ${formData.mobileNumber}`, 20, yPos);
+    yPos += 8;
+    pdf.text(`Email: ${formData.emailAddress}`, 20, yPos);
+    yPos += 8;
+    pdf.text(`Address: ${formData.address}`, 20, yPos);
     yPos += 20;
 
     // Event Details
-    pdf.setFont('helvetica', 'bold');
     pdf.setFontSize(14);
-    pdf.text('Event Details', margin, yPos);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Event Details:', 20, yPos);
     yPos += 10;
-
-    pdf.setFont('helvetica', 'normal');
+    
     pdf.setFontSize(12);
-    pdf.text(`Event Name: ${formData.eventName}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Date: ${formData.eventDate}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Venue: ${formData.venue}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Event Time: ${formData.eventTime}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Sound Check: ${formData.soundCheckDate} ${formData.soundCheckTime}`, margin, yPos);
-    yPos += 15;
-
-    // Artists
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Artists', margin, yPos);
-    yPos += 7;
     pdf.setFont('helvetica', 'normal');
-    formData.artists.forEach((artist, index) => {
-      pdf.text(`${index + 1}. ${artist.name}`, margin, yPos);
-      if (artist.practiceRequired) {
-        yPos += 5;
-        pdf.text(`   Practice: ${artist.practiceDate} ${artist.practiceTime}`, margin, yPos);
-      }
-      yPos += 7;
-    });
+    pdf.text(`Event Name: ${formData.eventName}`, 20, yPos);
     yPos += 8;
-
-    // Client Information
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Client Information', margin, yPos);
-    yPos += 10;
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Name: ${formData.clientName}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`NIC: ${formData.clientNIC}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Mobile: ${formData.mobileNumber}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Email: ${formData.emailAddress}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Address: ${formData.address}`, margin, yPos);
-    yPos += 15;
+    pdf.text(`Venue: ${formData.venue}`, 20, yPos);
+    yPos += 8;
+    pdf.text(`Event Time: ${formData.eventTime}`, 20, yPos);
+    yPos += 8;
+    pdf.text(`Sound Check: ${formData.soundCheckDate} ${formData.soundCheckTime}`, 20, yPos);
+    yPos += 20;
 
     // Technical Details
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Technical Details', margin, yPos);
+    pdf.text('Technical Details:', 20, yPos);
     yPos += 10;
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Sound Engineer: ${formData.soundEngineer}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Sound Engineer Price: LKR ${formData.soundEngineerPrice}`, margin, yPos);
-    yPos += 15;
 
-    // Vendors
-    pdf.setFont('helvetica', 'bold');
-    pdf.text('Vendors', margin, yPos);
-    yPos += 10;
-    pdf.setFont('helvetica', 'normal');
+    // Create table for vendors
+    const tableHeaders = ['Vendor Type', 'Name', 'Price (LKR)'];
+    const tableData = [
+      ['Sound Engineer', formData.soundEngineer, formData.soundEngineerPrice],
+      ['Sound Vendor 1', formData.soundVendor1.name, formData.soundVendor1.price],
+      ['Sound Vendor 2', formData.soundVendor2.name, formData.soundVendor2.price],
+      ['Lighting Vendor 1', formData.lightingVendor1.name, formData.lightingVendor1.price],
+      ['Lighting Vendor 2', formData.lightingVendor2.name, formData.lightingVendor2.price],
+    ];
+
+    // Table styling
+    pdf.setFillColor(254, 0, 0);
+    pdf.rect(20, yPos, pageWidth - 40, 10, 'F');
+    pdf.setTextColor(255, 255, 255);
     
-    if (formData.soundVendor1.name) {
-      pdf.text(`Sound Vendor 1: ${formData.soundVendor1.name} - LKR ${formData.soundVendor1.price}`, margin, yPos);
-      yPos += 7;
-    }
-    if (formData.soundVendor2.name) {
-      pdf.text(`Sound Vendor 2: ${formData.soundVendor2.name} - LKR ${formData.soundVendor2.price}`, margin, yPos);
-      yPos += 7;
-    }
-    if (formData.lightingVendor1.name) {
-      pdf.text(`Lighting Vendor 1: ${formData.lightingVendor1.name} - LKR ${formData.lightingVendor1.price}`, margin, yPos);
-      yPos += 7;
-    }
-    if (formData.lightingVendor2.name) {
-      pdf.text(`Lighting Vendor 2: ${formData.lightingVendor2.name} - LKR ${formData.lightingVendor2.price}`, margin, yPos);
-      yPos += 7;
-    }
-    yPos += 8;
+    // Draw table headers
+    let xPos = 20;
+    tableHeaders.forEach((header, index) => {
+      pdf.text(header, xPos + (index * 57), yPos + 7);
+    });
+    
+    // Reset text color and draw table data
+    pdf.setTextColor(0, 0, 0);
+    yPos += 15;
+    
+    tableData.forEach((row) => {
+      xPos = 20;
+      row.forEach((cell, index) => {
+        pdf.text(cell || '-', xPos + (index * 57), yPos);
+      });
+      yPos += 10;
+    });
+    
+    yPos += 20;
 
-    // Financials
+    // Financial Details
+    pdf.setFontSize(14);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Financial Details', margin, yPos);
+    pdf.text('Financial Summary:', 20, yPos);
     yPos += 10;
-    pdf.setFont('helvetica', 'normal');
-    pdf.text(`Quotation Price: LKR ${formData.quotationPrice}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Advance Payment: LKR ${formData.advancePayment}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Balance Payment: LKR ${formData.balancePayment}`, margin, yPos);
-    yPos += 7;
-    pdf.text(`Balance Due Date: ${formData.balanceDueDate}`, margin, yPos);
+
+    // Create table for financial details
+    pdf.setFillColor(254, 0, 0);
+    pdf.rect(pageWidth - 100, yPos, 80, 50, 'F');
+    pdf.setTextColor(255, 255, 255);
+    
+    pdf.text('Quotation:', pageWidth - 95, yPos + 15);
+    pdf.text(`LKR ${formData.quotationPrice}`, pageWidth - 40, yPos + 15);
+    
+    pdf.text('Advance:', pageWidth - 95, yPos + 30);
+    pdf.text(`LKR ${formData.advancePayment}`, pageWidth - 40, yPos + 30);
+    
+    pdf.text('Balance:', pageWidth - 95, yPos + 45);
+    pdf.text(`LKR ${formData.balancePayment}`, pageWidth - 40, yPos + 45);
+
+    // Footer
+    yPos = pageHeight - 30;
+    pdf.setTextColor(0, 0, 0);
+    pdf.text('Authorized Signature: _________________', pageWidth - 100, yPos);
+    
+    // Add red accent at bottom
+    pdf.setFillColor(254, 0, 0);
+    pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
 
     // Save the PDF
     pdf.save(`${formData.eventName || 'event'}_job_card.pdf`);
