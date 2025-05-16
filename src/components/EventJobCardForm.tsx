@@ -6,7 +6,6 @@ import ClientInfoSection from './sections/ClientInfoSection';
 import TechnicalDetailsSection from './sections/TechnicalDetailsSection';
 import FinancialsSection from './sections/FinancialsSection';
 import { Artist, EventFormData } from '../types';
-import logoUrl from '/Square.png';
 
 const EventJobCardForm: React.FC = () => {
   const [formData, setFormData] = useState<EventFormData>({
@@ -125,7 +124,7 @@ const EventJobCardForm: React.FC = () => {
     // Add watermark
     pdf.saveGraphicsState();
     pdf.setGState(new pdf.GState({ opacity: 0.1 }));
-    pdf.addImage(logoUrl, 'PNG', 
+    pdf.addImage('/Square.png', 'PNG', 
       pageWidth/2 - logoWidth/2, 
       pageHeight/2 - logoHeight/2, 
       logoWidth, 
@@ -138,7 +137,7 @@ const EventJobCardForm: React.FC = () => {
     pdf.rect(0, 0, pageWidth, 40, 'F');
     
     // Add logo to header
-    pdf.addImage(logoUrl, 'PNG', pageWidth - 50, 5, 30, 30);
+    pdf.addImage('/Square.png', 'PNG', pageWidth - 50, 5, 30, 30);
     
     // Add red accent
     pdf.setFillColor(254, 0, 0);
@@ -281,7 +280,7 @@ const EventJobCardForm: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <img 
-                src={logoUrl}
+                src="/Square.png"
                 alt="Midlane Entertainment Logo" 
                 className="h-12 w-auto"
               />
