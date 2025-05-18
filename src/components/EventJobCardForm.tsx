@@ -5,7 +5,7 @@ import EventDetailsSection from './sections/EventDetailsSection';
 import ClientInfoSection from './sections/ClientInfoSection';
 import TechnicalDetailsSection from './sections/TechnicalDetailsSection';
 import FinancialsSection from './sections/FinancialsSection';
-import { Artist, EventFormData } from '../types';
+import { Artist, EventFormData, Vendor } from '../types';
 
 const EventJobCardForm: React.FC = () => {
   const [formData, setFormData] = useState<EventFormData>({
@@ -30,10 +30,8 @@ const EventJobCardForm: React.FC = () => {
     // Technical & Vendor Details
     soundEngineer: '',
     soundEngineerPrice: '',
-    soundVendor1: { name: '', price: '' },
-    soundVendor2: { name: '', price: '' },
-    lightingVendor1: { name: '', price: '' },
-    lightingVendor2: { name: '', price: '' },
+    soundVendors: [{ name: '', price: '' }],
+    lightingVendors: [{ name: '', price: '' }],
     
     // Financials
     quotationPrice: '',
@@ -50,17 +48,31 @@ const EventJobCardForm: React.FC = () => {
     }));
   };
 
-  const handleVendorChange = (
-    vendorType: 'soundVendor1' | 'soundVendor2' | 'lightingVendor1' | 'lightingVendor2',
-    field: 'name' | 'price',
+  const handleVendorArrayChange = (
+    type: 'soundVendors' | 'lightingVendors',
+    index: number,
+    field: keyof Vendor,
     value: string
   ) => {
     setFormData(prev => ({
       ...prev,
-      [vendorType]: {
-        ...prev[vendorType],
-        [field]: value
-      }
+      [type]: prev[type].map((vendor, i) =>
+        i === index ? { ...vendor, [field]: value } : vendor
+      )
+    }));
+  };
+
+  const addVendor = (type: 'soundVendors' | 'lightingVendors') => {
+    setFormData(prev => ({
+      ...prev,
+      [type]: [...prev[type], { name: '', price: '' }]
+    }));
+  };
+
+  const removeVendor = (type: 'soundVendors' | 'lightingVendors', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [type]: prev[type].filter((_, i) => i !== index)
     }));
   };
 
@@ -200,12 +212,16 @@ const EventJobCardForm: React.FC = () => {
 
     // Create table for vendors
     const tableHeaders = ['Vendor Type', 'Name', 'Price (LKR)'];
+    
+    // Combine all vendors into a single array for the table
     const tableData = [
       ['Sound Engineer', formData.soundEngineer, formData.soundEngineerPrice],
-      ['Sound Vendor 1', formData.soundVendor1.name, formData.soundVendor1.price],
-      ['Sound Vendor 2', formData.soundVendor2.name, formData.soundVendor2.price],
-      ['Lighting Vendor 1', formData.lightingVendor1.name, formData.lightingVendor1.price],
-      ['Lighting Vendor 2', formData.lightingVendor2.name, formData.lightingVendor2.price],
+      ...formData.soundVendors.map((vendor, index) => 
+        [`Sound Vendor ${index + 1}`, vendor.name, vendor.price]
+      ),
+      ...formData.lightingVendors.map((vendor, index) => 
+        [`Lighting Vendor ${index + 1}`, vendor.name, vendor.price]
+      ),
     ];
 
     // Table styling
@@ -316,8 +332,10 @@ const EventJobCardForm: React.FC = () => {
           
           <TechnicalDetailsSection 
             formData={formData} 
-            handleInputChange={handleInputChange} 
-            handleVendorChange={handleVendorChange}
+            handleInputChange={handleInputChange}
+            handleVendorArrayChange={handleVendorArrayChange}
+            addVendor={addVendor}
+            removeVendor={removeVendor}
           />
           
           <FinancialsSection 

@@ -32,10 +32,8 @@ export interface EventFormData {
   // Technical & Vendor Details
   soundEngineer: string;
   soundEngineerPrice: string;
-  soundVendor1: Vendor;
-  soundVendor2: Vendor;
-  lightingVendor1: Vendor;
-  lightingVendor2: Vendor;
+  soundVendors: Vendor[];
+  lightingVendors: Vendor[];
   
   // Financials
   quotationPrice: string;

@@ -1,20 +1,23 @@
-import React, { useState } from 'react';
-import { PlusIcon } from 'lucide-react';
-import { EventFormData } from '../../types';
+import React from 'react';
+import { PlusIcon, MinusIcon } from 'lucide-react';
+import { EventFormData, Vendor } from '../../types';
 
 interface TechnicalDetailsSectionProps {
   formData: EventFormData;
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
-  handleVendorChange: (vendorType: 'soundVendor1' | 'soundVendor2' | 'lightingVendor1' | 'lightingVendor2', field: 'name' | 'price', value: string) => void;
+  handleVendorArrayChange: (type: 'soundVendors' | 'lightingVendors', index: number, field: keyof Vendor, value: string) => void;
+  addVendor: (type: 'soundVendors' | 'lightingVendors') => void;
+  removeVendor: (type: 'soundVendors' | 'lightingVendors', index: number) => void;
 }
 
 const TechnicalDetailsSection: React.FC<TechnicalDetailsSectionProps> = ({
   formData,
   handleInputChange,
-  handleVendorChange
+  handleVendorArrayChange,
+  addVendor,
+  removeVendor
 }) => {
-  const [showAdditionalSoundVendor, setShowAdditionalSoundVendor] = useState(false);
-  const [showAdditionalLightingVendor, setShowAdditionalLightingVendor] = useState(false);
+  const MAX_VENDORS = 10;
 
   return (
     <div className="animate-fadeIn pt-4">
@@ -59,125 +62,109 @@ const TechnicalDetailsSection: React.FC<TechnicalDetailsSectionProps> = ({
                 <div className="border-b border-gray-200 pb-4">
                   <div className="flex justify-between items-center mb-3">
                     <h4 className="font-medium text-gray-700">Sound Vendors</h4>
-                    {!showAdditionalSoundVendor && (
+                    {formData.soundVendors.length < MAX_VENDORS && (
                       <button
                         type="button"
-                        onClick={() => setShowAdditionalSoundVendor(true)}
+                        onClick={() => addVendor('soundVendors')}
                         className="text-amber-600 hover:text-amber-700 text-sm flex items-center gap-1"
                       >
                         <PlusIcon className="h-4 w-4" />
-                        Add Another Vendor
+                        Add Vendor
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Sound Vendor</label>
-                      <input
-                        type="text"
-                        value={formData.soundVendor1.name}
-                        onChange={(e) => handleVendorChange('soundVendor1', 'name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
-                        placeholder="Enter Vendor Company Name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Price (LKR)</label>
-                      <input
-                        type="text"
-                        value={formData.soundVendor1.price}
-                        onChange={(e) => handleVendorChange('soundVendor1', 'price', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
-                        placeholder="Enter Price"
-                      />
-                    </div>
-                  </div>
-                  {showAdditionalSoundVendor && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {formData.soundVendors.map((vendor, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Additional Sound Vendor</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Sound Vendor {index + 1}
+                        </label>
                         <input
                           type="text"
-                          value={formData.soundVendor2.name}
-                          onChange={(e) => handleVendorChange('soundVendor2', 'name', e.target.value)}
+                          value={vendor.name}
+                          onChange={(e) => handleVendorArrayChange('soundVendors', index, 'name', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
                           placeholder="Enter Vendor Company Name"
                         />
                       </div>
-                      <div>
+                      <div className="relative">
                         <label className="block text-sm font-medium text-gray-600 mb-1">Price (LKR)</label>
-                        <input
-                          type="text"
-                          value={formData.soundVendor2.price}
-                          onChange={(e) => handleVendorChange('soundVendor2', 'price', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
-                          placeholder="Enter Price"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={vendor.price}
+                            onChange={(e) => handleVendorArrayChange('soundVendors', index, 'price', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
+                            placeholder="Enter Price"
+                          />
+                          {formData.soundVendors.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeVendor('soundVendors', index)}
+                              className="text-red-500 hover:text-red-700 p-2"
+                              title="Remove vendor"
+                            >
+                              <MinusIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
 
                 <div>
                   <div className="flex justify-between items-center mb-3">
                     <h4 className="font-medium text-gray-700">Lighting Vendors</h4>
-                    {!showAdditionalLightingVendor && (
+                    {formData.lightingVendors.length < MAX_VENDORS && (
                       <button
                         type="button"
-                        onClick={() => setShowAdditionalLightingVendor(true)}
+                        onClick={() => addVendor('lightingVendors')}
                         className="text-amber-600 hover:text-amber-700 text-sm flex items-center gap-1"
                       >
                         <PlusIcon className="h-4 w-4" />
-                        Add Another Vendor
+                        Add Vendor
                       </button>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Lighting Vendor</label>
-                      <input
-                        type="text"
-                        value={formData.lightingVendor1.name}
-                        onChange={(e) => handleVendorChange('lightingVendor1', 'name', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
-                        placeholder="Enter Vendor Company Name"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-600 mb-1">Price (LKR)</label>
-                      <input
-                        type="text"
-                        value={formData.lightingVendor1.price}
-                        onChange={(e) => handleVendorChange('lightingVendor1', 'price', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
-                        placeholder="Enter Price"
-                      />
-                    </div>
-                  </div>
-                  {showAdditionalLightingVendor && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {formData.lightingVendors.map((vendor, index) => (
+                    <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">Additional Lighting Vendor</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">
+                          Lighting Vendor {index + 1}
+                        </label>
                         <input
                           type="text"
-                          value={formData.lightingVendor2.name}
-                          onChange={(e) => handleVendorChange('lightingVendor2', 'name', e.target.value)}
+                          value={vendor.name}
+                          onChange={(e) => handleVendorArrayChange('lightingVendors', index, 'name', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
                           placeholder="Enter Vendor Company Name"
                         />
                       </div>
-                      <div>
+                      <div className="relative">
                         <label className="block text-sm font-medium text-gray-600 mb-1">Price (LKR)</label>
-                        <input
-                          type="text"
-                          value={formData.lightingVendor2.price}
-                          onChange={(e) => handleVendorChange('lightingVendor2', 'price', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
-                          placeholder="Enter Price"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={vendor.price}
+                            onChange={(e) => handleVendorArrayChange('lightingVendors', index, 'price', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent transition duration-200"
+                            placeholder="Enter Price"
+                          />
+                          {formData.lightingVendors.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => removeVendor('lightingVendors', index)}
+                              className="text-red-500 hover:text-red-700 p-2"
+                              title="Remove vendor"
+                            >
+                              <MinusIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               </div>
             </div>
