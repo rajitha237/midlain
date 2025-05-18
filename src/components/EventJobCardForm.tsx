@@ -124,6 +124,21 @@ const EventJobCardForm: React.FC = () => {
     window.print();
   };
 
+  const calculateTotalVendorCosts = () => {
+    const soundEngineerCost = parseFloat(formData.soundEngineerPrice) || 0;
+    const soundVendorsCost = formData.soundVendors.reduce((total, vendor) => 
+      total + (parseFloat(vendor.price) || 0), 0);
+    const lightingVendorsCost = formData.lightingVendors.reduce((total, vendor) => 
+      total + (parseFloat(vendor.price) || 0), 0);
+    
+    return {
+      soundEngineerCost,
+      soundVendorsCost,
+      lightingVendorsCost,
+      totalCost: soundEngineerCost + soundVendorsCost + lightingVendorsCost
+    };
+  };
+
   const generatePDF = () => {
     const pdf = new jsPDF();
     
@@ -255,23 +270,42 @@ const EventJobCardForm: React.FC = () => {
     pdf.text('Financial Summary:', 20, yPos);
     yPos += 10;
 
-    // Create table for financial details
+    // Calculate vendor costs
+    const costs = calculateTotalVendorCosts();
+
+    // Create detailed financial summary
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    
+    // Vendor Costs Breakdown
+    pdf.text('Vendor Costs Breakdown:', 20, yPos);
+    yPos += 8;
+    pdf.text(`Sound Engineer: LKR ${costs.soundEngineerCost.toFixed(2)}`, 30, yPos);
+    yPos += 8;
+    pdf.text(`Sound Vendors Total: LKR ${costs.soundVendorsCost.toFixed(2)}`, 30, yPos);
+    yPos += 8;
+    pdf.text(`Lighting Vendors Total: LKR ${costs.lightingVendorsCost.toFixed(2)}`, 30, yPos);
+    yPos += 8;
+    pdf.text(`Total Vendor Cost: LKR ${costs.totalCost.toFixed(2)}`, 30, yPos);
+    yPos += 15;
+
+    // Payment Summary Box
     pdf.setFillColor(254, 0, 0);
-    pdf.rect(pageWidth - 100, yPos, 80, 50, 'F');
+    pdf.rect(pageWidth - 100, yPos, 80, 60, 'F');
     pdf.setTextColor(255, 255, 255);
     
-    pdf.text('Quotation:', pageWidth - 95, yPos + 15);
-    pdf.text(`LKR ${formData.quotationPrice}`, pageWidth - 40, yPos + 15);
-    
-    pdf.text('Advance:', pageWidth - 95, yPos + 30);
-    pdf.text(`LKR ${formData.advancePayment}`, pageWidth - 40, yPos + 30);
-    
-    pdf.text('Balance:', pageWidth - 95, yPos + 45);
-    pdf.text(`LKR ${formData.balancePayment}`, pageWidth - 40, yPos + 45);
+    pdf.text('Payment Summary:', pageWidth - 95, yPos + 10);
+    pdf.text(`Quotation: LKR ${formData.quotationPrice}`, pageWidth - 95, yPos + 25);
+    pdf.text(`Advance: LKR ${formData.advancePayment}`, pageWidth - 95, yPos + 40);
+    pdf.text(`Balance: LKR ${formData.balancePayment}`, pageWidth - 95, yPos + 55);
+
+    // Due Date
+    pdf.setTextColor(0, 0, 0);
+    yPos += 70;
+    pdf.text(`Balance Payment Due Date: ${formData.balanceDueDate}`, 20, yPos);
 
     // Footer
     yPos = pageHeight - 30;
-    pdf.setTextColor(0, 0, 0);
     pdf.text('Authorized Signature: _________________', pageWidth - 100, yPos);
     
     // Add red accent at bottom
