@@ -141,12 +141,12 @@ const EventJobCardForm: React.FC = () => {
 
   const generatePDF = () => {
     const pdf = new jsPDF();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
     
     // Add logo as watermark
     const logoWidth = 40;
     const logoHeight = 40;
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
     
     // Add watermark
     pdf.saveGraphicsState();
@@ -261,53 +261,73 @@ const EventJobCardForm: React.FC = () => {
       });
       yPos += 10;
     });
-    
-    yPos += 20;
 
-    // Financial Details
-    pdf.setFontSize(14);
+    // Add a new page for financial summary
+    pdf.addPage();
+    yPos = 50;
+
+    // Financial Summary Title
+    pdf.setFontSize(20);
     pdf.setFont('helvetica', 'bold');
-    pdf.text('Financial Summary:', 20, yPos);
-    yPos += 10;
+    pdf.text('FINANCIAL SUMMARY', pageWidth/2, yPos, { align: 'center' });
+    yPos += 30;
 
     // Calculate vendor costs
     const costs = calculateTotalVendorCosts();
 
-    // Create detailed financial summary
-    pdf.setFontSize(12);
+    // Create detailed financial summary box
+    const boxWidth = 160;
+    const boxHeight = 140;
+    const boxX = (pageWidth - boxWidth) / 2;
+    const boxStartY = yPos;
+
+    // Draw background box
+    pdf.setFillColor(245, 245, 245);
+    pdf.rect(boxX, boxStartY, boxWidth, boxHeight, 'F');
+
+    // Add content to the box
+    pdf.setFontSize(14);
+    pdf.setFont('helvetica', 'bold');
+    yPos += 20;
+
+    // Vendor Costs Section
+    pdf.text('Vendor Costs:', boxX + 10, yPos);
     pdf.setFont('helvetica', 'normal');
-    
-    // Vendor Costs Breakdown
-    pdf.text('Vendor Costs Breakdown:', 20, yPos);
-    yPos += 8;
-    pdf.text(`Sound Engineer: LKR ${costs.soundEngineerCost.toFixed(2)}`, 30, yPos);
-    yPos += 8;
-    pdf.text(`Sound Vendors Total: LKR ${costs.soundVendorsCost.toFixed(2)}`, 30, yPos);
-    yPos += 8;
-    pdf.text(`Lighting Vendors Total: LKR ${costs.lightingVendorsCost.toFixed(2)}`, 30, yPos);
-    yPos += 8;
-    pdf.text(`Total Vendor Cost: LKR ${costs.totalCost.toFixed(2)}`, 30, yPos);
+    pdf.setFontSize(12);
     yPos += 15;
+    pdf.text(`Sound Engineer: LKR ${costs.soundEngineerCost.toFixed(2)}`, boxX + 20, yPos);
+    yPos += 10;
+    pdf.text(`Sound Vendors: LKR ${costs.soundVendorsCost.toFixed(2)}`, boxX + 20, yPos);
+    yPos += 10;
+    pdf.text(`Lighting Vendors: LKR ${costs.lightingVendorsCost.toFixed(2)}`, boxX + 20, yPos);
+    yPos += 10;
+    pdf.text(`Total Vendor Cost: LKR ${costs.totalCost.toFixed(2)}`, boxX + 20, yPos);
+    yPos += 20;
 
-    // Payment Summary Box
-    pdf.setFillColor(254, 0, 0);
-    pdf.rect(pageWidth - 100, yPos, 80, 60, 'F');
-    pdf.setTextColor(255, 255, 255);
-    
-    pdf.text('Payment Summary:', pageWidth - 95, yPos + 10);
-    pdf.text(`Quotation: LKR ${formData.quotationPrice}`, pageWidth - 95, yPos + 25);
-    pdf.text(`Advance: LKR ${formData.advancePayment}`, pageWidth - 95, yPos + 40);
-    pdf.text(`Balance: LKR ${formData.balancePayment}`, pageWidth - 95, yPos + 55);
+    // Payment Details Section
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Payment Details:', boxX + 10, yPos);
+    pdf.setFont('helvetica', 'normal');
+    yPos += 15;
+    pdf.text(`Quotation Amount: LKR ${formData.quotationPrice}`, boxX + 20, yPos);
+    yPos += 10;
+    pdf.text(`Advance Payment: LKR ${formData.advancePayment}`, boxX + 20, yPos);
+    yPos += 10;
+    pdf.text(`Balance Payment: LKR ${formData.balancePayment}`, boxX + 20, yPos);
 
-    // Due Date
-    pdf.setTextColor(0, 0, 0);
-    yPos += 70;
-    pdf.text(`Balance Payment Due Date: ${formData.balanceDueDate}`, 20, yPos);
+    // Add balance due date below the box
+    yPos = boxStartY + boxHeight + 20;
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(`Balance Payment Due Date: ${formData.balanceDueDate}`, pageWidth/2, yPos, { align: 'center' });
 
-    // Footer
-    yPos = pageHeight - 30;
-    pdf.text('Authorized Signature: _________________', pageWidth - 100, yPos);
-    
+    // Add signature line at the bottom
+    yPos = pageHeight - 50;
+    pdf.line(pageWidth/2 - 50, yPos, pageWidth/2 + 50, yPos);
+    yPos += 10;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+    pdf.text('Authorized Signature', pageWidth/2, yPos, { align: 'center' });
+
     // Add red accent at bottom
     pdf.setFillColor(254, 0, 0);
     pdf.rect(0, pageHeight - 15, pageWidth, 15, 'F');
